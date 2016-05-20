@@ -1,14 +1,36 @@
+var fs          = require('fs');
+var path        = require('path');
 var gulp        = require('gulp');
 var browserSync = require('browser-sync');
 var sass        = require('gulp-sass');
 var prefix      = require('gulp-autoprefixer');
 var cp          = require('child_process');
 var imagemin    = require('gulp-imagemin');
+var rename      = require('gulp-rename');
 
 var jekyll   = process.platform === 'win32' ? 'jekyll.bat' : 'jekyll';
 var messages = {
     jekyllBuild: '<span style="color: grey">Running:</span> $ jekyll build'
 };
+
+// var imagesPath = 'images'
+
+function getFolders(dir) {
+    return fs.readdirSync(dir)
+      .filter(function(file) {
+        return fs.statSync(path.join(dir, file)).isDirectory();
+      });
+}
+
+gulp.task('rename', function(){
+  var folders = getFolders('images')
+
+   folders.map(function(folder) {
+    return gulp.src(path.join('images', folder, '/**/*'))
+      .pipe(rename(folder + '.md'))
+      .pipe(gulp.dest('_posts'))
+  })
+});
 
 /**
  * Build the Jekyll Site
@@ -66,6 +88,7 @@ gulp.task('watch', function () {
     gulp.watch('_scss/*.scss', ['sass']);
     gulp.watch(['*.html', '_layouts/*.html', '_posts/*'], ['jekyll-rebuild']);
     gulp.watch(['images/*'], ['imagemin']);
+    gulp.watch(['images/**/*'], ['rename']);
 });
 
 
